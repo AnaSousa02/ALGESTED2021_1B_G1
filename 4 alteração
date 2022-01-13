@@ -1,0 +1,1711 @@
+#include <stdio.h>
+#include <string.h>
+#include <stdlib.h>
+#include <locale.h>
+#include<time.h>
+#include <ctype.h>
+#define MAX 13
+#define  MAX_DADORES 10
+#define MAX_RASTREIOS 10
+
+//AnaSousa Data da última modificação:04/12/2020
+
+//Estrutura para a data de nascimento(dia,mes e ano)
+typedef struct
+{
+    int dia;
+    int mes;
+    int ano;
+} data_tipo;
+
+//Estrutura do dador para os seus dados necessários guardar em relação a esse
+typedef struct dador
+{
+    long num; ///Numero do Dador (formato inclui os 6 primeiros d�gitos: DDDDDD)
+    char nome[26];///Nome do dadorente (m�ximo 25 carateres �teis)
+    data_tipo dt; ///Data de nascimento (formato obrigat�rio: DD-MM-AAAA)
+    char rh;   ///Rh ('+' ou '-')
+    float peso;//peso em kg
+    int nd;//numero de dadivas
+    char s[3];//tipo sanguíneo, A,B,O, AB
+
+} dador_tipo;
+
+
+//Estruturas menu 1.2. Inês Marcelino - Ultima modificação dia  de dezembro
+
+/// Estrutura para introduzir a hora de abertura
+typedef struct tempoabertura
+{
+    int hora;
+    int minuto;
+} tempoabertura_tipo;
+
+/// Estrutura para introduzir a hora de fecho
+typedef struct tempofecho
+{
+    int hora;
+    int minuto;
+} tempofecho_tipo;
+
+typedef struct concelhos
+{
+    int numeroconcelhos;
+    char concelho [26];// numero máximo de concelhos(5) a adicionar por cidade, com carateres máximo de 25, incluido carater nulo.
+    char local [51];// numero maximo de carateres de 50
+    char brigada [51];// numero maximo de carateres de 50
+    tempoabertura_tipo tempoabertura;
+    tempofecho_tipo tempofecho;
+}concelhos_tipo;
+
+/// Estrutura para introduzir os dados de cada cidade.
+typedef struct finalestrutura
+{
+    char nomecidade [18];// numero maximo de carateres de 17
+    data_tipo data;
+    concelhos_tipo concelhos;
+
+} finalestrutura_tipo;
+
+
+
+
+//Alguns dadores como exemplo, parâmetros de entrada: vetor dador[] e parâmetro de saída:qtd (quantidade de elemetos de exemplo)
+void inicializar_dadores(dador_tipo dador[], int *qtd)
+{
+    dador[0].num=111111;
+    strcpy(dador[0].nome,"Bill Gates");
+    dador[0].dt.dia=28;
+    dador[0].dt.mes=10;
+    dador[0].dt.ano=1955;
+    dador[0].peso=80;
+    dador[0].nd=10;
+    strcpy(dador[0].s,"A");
+    dador[0].rh='+';
+
+    dador[1].num=111112;
+    strcpy(dador[1].nome,"Dennis Ritchie");
+    dador[1].dt.dia=9;
+    dador[1].dt.mes=9;
+    dador[1].dt.ano=1941;
+    dador[1].peso=70;
+    dador[1].nd=20;
+    strcpy(dador[1].s,"B");
+    dador[1].rh='-';
+
+    dador[2].num=111113;
+    strcpy(dador[2].nome,"Marcelo Rebelo de Sousa");
+    dador[2].dt.dia=12;
+    dador[2].dt.mes=12;
+    dador[2].dt.ano=1948;
+    dador[2].peso=65;
+    dador[2].nd=40;
+    strcpy(dador[2].s,"O");
+    dador[2].rh='+';
+
+    dador[3].num=111114;
+    strcpy(dador[3].nome,"Catarina Furtado");
+    dador[3].dt.dia=25;
+    dador[3].dt.mes=8;
+    dador[3].dt.ano=1972;
+    dador[3].peso=60;
+    dador[3].nd=60;
+    strcpy(dador[3].s,"AB");
+    dador[3].rh='+';
+
+    dador[4].num=111115;
+    strcpy(dador[4].nome,"Greta Thunberg");
+    dador[4].dt.dia=3;
+    dador[4].dt.mes=1;
+    dador[4].dt.ano=2003;
+    dador[4].peso=55;
+    dador[4].nd=100;
+    strcpy(dador[4].s,"A");
+    dador[4].rh='-';
+
+    *qtd=5;
+}
+//fonte utilizada para a estrutura dador e o iniializar_dadores: Código disponibilizado pela Docente na páguina moodle projeto base
+
+//Menu Geral que dá acesso aos dois menus 1.1 e 1.2(sem parâmetros de entrada ou de saída)
+char menu_geral()
+{
+    char op1;
+    fflush(stdin);
+    printf("***********Menu************\n");
+    printf("1-Gestao de Dadores de Sangue\n");
+    printf("2-Gestao de Locais de Recolha de Sangue\n");
+    printf("3-Recolha de Sangue\n");
+    printf("4-Estatistica\n");
+    printf("0-Sair\n");
+    printf("*****************************\n");
+    scanf("%c", &op1);
+    fflush(stdin);
+    return op1;
+}
+
+//Menu Gestao dos Dadores (menu 1.1, sem parâmetros de entrada ou de saída)
+char menu_gd()
+{
+    char op2;
+    printf("*********Menu 1.1 **********\n");
+    printf("1-Inserir Dador\n");
+    printf("2-Eliminar Dador\n");
+    printf("3-Consultar Dadores galardoados\n");
+    printf("4-Listar Todos os Dadores\n");
+    printf("0-Voltar ao Menu Principal\n");
+    printf("*****************************\n");
+    fflush(stdin);
+    scanf("%c", &op2);
+    return op2;
+}
+//Fonte para a realizção dos menus:relacionado com a ficha 6
+
+//Menu Gestão de Recolhas de Sangue (menu 1.3, função sem parâmetros de entrada ou de saída)
+char menu_gs()
+{
+    char op4;
+    printf("\n*********Menu 1.3*********\n");
+    printf("1-Nova Recolha de Sangue\n");
+    printf("2-Editar Recolha\n");
+    printf("3-Medir Sinais Vitais\n");
+    printf("4-Historico de Rastreios de um Dador\n");
+    printf("0-Voltar ao Menu Principal\n");
+    printf("*****************************\n");
+    fflush(stdin);
+    scanf("%c", &op4);
+    return op4;
+}
+//validar se a data inserida esta correta
+int validar_data(int dia, int mes, int ano)
+{
+    int m[13];
+    if(mes > 0 &&mes < 13)
+    {
+        m[1] = 32;  ///janeiro
+        m[2] = 29;  ///fevereiro
+        m[3] = 32;  ///marco
+        m[4] = 31;  ///abril
+        m[5] = 32;  ///maio
+        m[6] = 31;  ///junho
+        m[7] = 32;  ///julho
+        m[8] = 32;  ///agosto
+        m[9] = 31;  ///setembro
+        m[10]= 32;  ///outubro
+        m[11]= 31;  ///novembro
+        m[12]= 32;  ///dezembro
+        if(((((ano%400)==0)||((ano%100)!=0))
+                &&((ano%4)==0)))                 ///verifica se o ano e bissexto
+            m[2]+=1;                         ///se o ano for bissexto fevereiro tem mais um dia
+        if(dia > 0  && dia < m[mes])        ///verifica se o dia do mes e valido
+            return 1;
+        else
+            return 0;
+
+    }
+    else
+        return 0;
+
+
+}
+
+//Validar o ano
+int validar_ano(int ano, int tam)
+{
+    int aux, cont;
+    do
+    {
+        aux=ano;
+        cont=0;
+        do
+        {
+            aux/=10; ///vai retirando 1 digito a variavel aux
+            cont++; ///vai contando quantos digitos a variavel aux tem
+            if((aux==0)&&(cont!=tam))
+                return 0;
+
+        }
+        while(aux!=0);
+        ///at� ter retirado todos os digitos � variavel aux
+    }
+    while(cont!=tam); ///repete enquanto o contador nao tiver o valor 4, ou seja, 4 digitos
+    if((aux==0)&&(cont==tam))
+        return 1;
+    return ano;
+}
+//fonte utilizada para a realização da validação da data e do ano: Código disponibilizado pela Docente na páguina moodle validação da data
+
+//Validar o numero do dador
+int validar_numero(dador_tipo dador[], int qtd)
+{
+    int i, k;
+    for(i=0; i<qtd;i++)
+    {
+        for(k=i+1;k<qtd;k++)
+        {
+            if(dador[k].num==dador[i].num)
+                return 0;
+            else
+                return 1;
+        }
+    }
+     return 2;//alterado no dia 01/01/2022
+}
+
+//Inserir dadores
+void inserir_dadores(dador_tipo dador[], int *qtd)
+{
+    int a, d, m, n, ano, x;
+    fflush(stdin);
+    printf("\nDegite o nome do dador:");
+    gets(dador[*qtd].nome);
+    printf("\nDigite a data de nascimento da forma(ano/mes/dia):");
+    scanf("%d%d%d", &dador[*qtd].dt.ano, & dador[*qtd].dt.mes, &dador[*qtd].dt.dia);
+    a=dador[*qtd].dt.ano;
+    d=dador[*qtd].dt.dia;
+    m=dador[*qtd].dt.mes;
+    ano=validar_ano(a,4);
+    while(ano==0)
+    {
+        printf("Data invalida,o ano inserido nao tem os 4 digitos, insira novamente(ano):");
+        scanf("%d", &dador[*qtd].dt.ano);
+        a=dador[*qtd].dt.ano;
+        ano=validar_ano(a,4);
+    }
+    n=validar_data(d,m,a);
+    while(n==0)
+    {
+        printf("Data Invalida, inseriu incorretamente o mes ou o dia, insira novamente(mes/dia):");
+        scanf("%d%d", &dador[*qtd].dt.mes, &dador[*qtd].dt.dia);
+        d=dador[*qtd].dt.dia;
+        m=dador[*qtd].dt.mes;
+        n=validar_data(d,m,a);
+    }
+    printf("\nDigite o peso:");
+    scanf("%f", &dador[*qtd].peso);
+    printf("\nDigite o numero de dadivas:");
+    scanf("%d", &dador[*qtd].nd);
+    fflush(stdin);
+    printf("\nDigite o seu tipo de sangue (A,B,AB ou O):");
+    gets(dador[*qtd].s);
+    while(strcmp(dador[*qtd].s,"A")!=0 && strcmp(dador[*qtd].s,"B")!=0 && strcmp(dador[*qtd].s,"AB")!=0 && strcmp(dador[*qtd].s,"O")!=0)
+    {
+        printf("O tipo de sangue introduzido esta incorreto, digite novamente (A,B,AB ou O):\n");
+        gets(dador[*qtd].s);
+    }
+    printf("\nFator Rh(+ou-)");
+    scanf("%c", &dador[*qtd].rh);
+    while(dador[*qtd].rh != '+' && dador[*qtd].rh != '-')
+    {
+        fflush(stdin);
+        printf("O fator Rh introduzido esta incorreto, digite novamente (+ou-):\n");
+        scanf("%c", &dador[*qtd].rh);
+    }
+
+    //Atrinuir um numero ao dador:
+srand(time(NULL));
+    dador[*qtd].num=100000+rand()%900000;
+    x=validar_numero(dador, *qtd);
+    while(x == 0)//Verifica se o número que o programa aplicou ao dador é único
+    {
+            srand(time(NULL));
+            dador[*qtd].num=100000+rand()%900000;
+            x=validar_numero(dador, *qtd);
+    }
+    *qtd+=1;
+
+}
+
+//Eliminar os dados de um dador apartir do seu número de dador
+void eliminar_dadores(dador_tipo dador[], int *qtd)
+{
+    int da, k, y, m;
+    printf("Introduza o numero do dador que pretende eliminar:\n");
+    scanf("%d", &da);
+    m = 0;
+    for (k = 0; k < *qtd; k++)//Verifica se o número do dador introduzido existe no registo de forma a eliminar os dados desse dador
+    {
+        if (da == dador[k].num)
+        {
+            printf("Dador inserido encontra-se no registo!\n");
+            for(y = k; y < *qtd-1; y++)
+            {
+                dador[y] = dador[y+1];
+            }
+            printf("O dador registado foi eliminado!\n");
+            m = 1;
+            break;
+        }
+    }
+    if(m != 1)
+    {
+        printf("Dador inserido nao se encontra no registo!\n");
+    }
+    else
+    {
+        *qtd-= 1;
+    }
+
+
+}
+
+//Consultar os dadores inseridos com premios
+void consultar_galardoados(dador_tipo dador[], int qtd)
+{
+    int k;
+    printf("                     Dador|Numero|Nascimento| ND| Premio\n");
+    for(k=0; k<qtd; k++)
+    {
+        if(dador[k].nd>=10&&dador[k].nd<20)
+            printf("%26s|%6ld|%2d-%2d-%4d|%3d| Diploma das 10 Dadivas\n", dador[k].nome, dador[k].num, dador[k].dt.dia, dador[k].dt.mes, dador[k].dt.ano, dador[k].nd);
+        if(dador[k].nd>=20&&dador[k].nd<40)
+            printf("%26s|%6ld|%2d-%2d-%4d|%3d| Medalha Cobreada\n",dador[k].nome, dador[k].num, dador[k].dt.dia, dador[k].dt.mes, dador[k].dt.ano, dador[k].nd);
+        if(dador[k].nd>=40&&dador[k].nd<60)
+            printf("%26s|%6ld|%2d-%2d-%4d|%3d| Medalha Prateada\n",dador[k].nome, dador[k].num, dador[k].dt.dia, dador[k].dt.mes, dador[k].dt.ano, dador[k].nd);
+        if(dador[k].nd>=60&&dador[k].nd<100)
+            printf("%26s|%6ld|%2d-%2d-%4d|%3d| Medalha Dourada\n",dador[k].nome, dador[k].num, dador[k].dt.dia, dador[k].dt.mes, dador[k].dt.ano, dador[k].nd);
+        if(dador[k].nd>=100)
+            printf("%26s|%6ld|%2d-%2d-%4d|%3d| Medalha Dourada+Certificado\n",dador[k].nome, dador[k].num, dador[k].dt.dia, dador[k].dt.mes, dador[k].dt.ano, dador[k].nd);
+
+    }
+}
+
+//ordenar os dadores inseridos por ordem do maior premio
+void ordenacao_dadores(dador_tipo dador[],int qtd)
+{
+    int x, y, num, dia, mes, ano, peso, d;
+    char aux[26], sang[2], rh;
+    for(x=0; x<qtd; x++)
+    {
+        for(y=x+1; y<qtd; y++)
+        {
+            if(dador[x].nd<dador[y].nd)
+            {
+                num=dador[x].num;
+                dador[x].num=dador[y].num;
+                dador[y].num=num;
+                strcpy(aux, dador[x].nome);
+                strcpy(dador[x].nome, dador[y].nome);
+                strcpy(dador[y].nome, aux);
+                dia=dador[x].dt.dia;
+                dador[x].dt.dia=dador[y].dt.dia;
+                dador[y].dt.dia=dia;
+                mes=dador[x].dt.mes;
+                dador[x].dt.mes=dador[y].dt.mes;
+                dador[y].dt.mes=mes;
+                ano=dador[x].dt.ano;
+                dador[x].dt.ano=dador[y].dt.ano;
+                dador[y].dt.ano=ano;
+                peso=dador[x].peso;
+                dador[x].peso=dador[y].peso;
+                dador[y].peso=peso;
+                d=dador[x].nd;
+                dador[x].nd=dador[y].nd;
+                dador[y].nd=d;
+                strcpy(sang, dador[x].s);
+                strcpy(dador[x].s, dador[y].s);
+                strcpy(dador[y].s, sang);
+                rh=dador[x].rh;
+                dador[x].rh=dador[y].rh;
+                dador[y].rh=rh;
+
+            }
+        }
+    }
+
+}
+
+//mostrar os dadores inseridos em forma de tabela
+void mostrar_dadores(dador_tipo dador[], int qtd)
+{
+    int k;
+
+    ordenacao_dadores(dador,qtd);
+
+    printf("                     Nome |Numero|Nascimento| Peso| ND|TS|Rh\n");
+    for(k=0; k<qtd; k++)
+    {
+        printf("%26s|%6ld|%2d-%2d-%4d|%.2f|%3d|%2s|%c\n", dador[k].nome, dador[k].num, dador[k].dt.dia, dador[k].dt.mes, dador[k].dt.ano, dador[k].peso, dador[k].nd, dador[k].s, dador[k].rh);
+    }
+}
+
+/// Procedimento para validar a data completa - codigo fornecido
+int validar_data2(finalestrutura_tipo finalestruturavetor[], int *qtd2)
+{
+    int m[13];
+    if( finalestruturavetor[*qtd2].data.mes > 0 && finalestruturavetor[*qtd2].data.mes < 13)
+    {
+        m[1] = 32;  ///janeiro
+        m[2] = 29;  ///fevereiro
+        m[3] = 32;  ///março
+        m[4] = 31;  ///abril
+        m[5] = 32;  ///maio
+        m[6] = 31;  ///junho
+        m[7] = 32;  ///julho
+        m[8] = 32;  ///agosto
+        m[9] = 31;  ///setembro
+        m[10]= 32;  ///outubro
+        m[11]= 31;  ///novembro
+        m[12]= 32;  ///dezembro
+        if(((((finalestruturavetor[*qtd2].data.ano%400)==0)||((finalestruturavetor[*qtd2].data.ano%100)!=0))
+            &&((finalestruturavetor[*qtd2].data.ano%4)==0)))                 ///verifica se o ano � bissexto
+            m[2]+=1;                         ///se o ano for bissexto fevereiro tem mais um dia
+        if( finalestruturavetor[*qtd2].data.dia > 0  && finalestruturavetor[*qtd2].data.dia < m[finalestruturavetor[*qtd2].data.mes])          ///verifica se o dia do m�s � v�lido
+            return 1;
+        else
+            return 0;
+    }
+    else
+        return 0;
+}
+///validar ano: ano deve ter 4 digitos
+ int validar_ano2(finalestrutura_tipo finalestruturavetor[], int *qtd2)
+{
+    int aux, cont, correta=-1;
+        aux=finalestruturavetor[*qtd2].data.ano;
+        cont=0;
+        do{
+            aux/=10; ///vai retirando 1 digito variavel aux
+            cont++;  ///vai contando quantos digitos a variavel aux tem
+        }while(aux!=0); ///ate ter retirado todos os digitos a variavel aux
+    if(cont!=4){
+        correta=0;
+        printf ("\nAno invalido");
+    }
+    else
+        correta=1;
+    return correta;
+}
+
+
+
+/// modulo final da validação da data
+int datafinal(finalestrutura_tipo finalestruturavetor[], int qtd2)
+{
+    int correta;// variavel de verificação de data invalida ou nao
+   correta=validar_ano2(finalestruturavetor, qtd2);
+if(correta!=0){
+    if(validar_data2(finalestruturavetor, qtd2)==0)
+    {
+        printf("\nERRO! - Data invalida.\n");
+        correta=0;
+    }
+    else
+    {
+        printf("\nData correta.\n");
+        correta=1;
+    }
+}
+    return correta;
+}
+
+/// Procedimento da validar as horas e minutos da abertura
+int tempoaberturafinal(finalestrutura_tipo finalestruturavetor[], int *qtd2)
+{
+    int correta1=-1;
+
+    if(finalestruturavetor[*qtd2].concelhos.tempoabertura.hora>=0 && finalestruturavetor[*qtd2].concelhos.tempoabertura.hora<=23)
+       {
+           if(finalestruturavetor[*qtd2].concelhos.tempoabertura.minuto>=0 && finalestruturavetor[*qtd2].concelhos.tempoabertura.minuto<=59)
+            {
+                 printf("\nHora correta.\n");
+                 correta1=1;
+            }
+       else
+       {
+           printf("\nERRO! - Hora invalida.\n");
+           correta1=0;
+       }
+       }
+    return correta1;
+}
+
+
+/// Função para validar as horas e minutos da fecho
+int tempofechofinal(finalestrutura_tipo finalestruturavetor[], int *qtd2)
+{
+    int correta2=-1;
+
+    if(finalestruturavetor[*qtd2].concelhos.tempofecho.hora>=0 && finalestruturavetor[*qtd2].concelhos.tempofecho.hora<=23)
+       {
+           if(finalestruturavetor[*qtd2].concelhos.tempofecho.minuto>=0 && finalestruturavetor[*qtd2].concelhos.tempofecho.minuto<=59)
+            {
+                 printf("\nHora correta.\n");
+                 correta2=1;
+            }
+       else
+       {
+           printf("\nERRO! - Hora invalida.\n");
+           correta2=0;
+       }
+       }
+    return correta2;
+}
+
+void inicializarfinal(finalestrutura_tipo finalestruturavetor[],  int *qtd2)
+{
+    strcpy(finalestruturavetor[0].nomecidade,"Aveiro");
+    finalestruturavetor[0].data.dia=28;
+    finalestruturavetor[0].data.mes=10;
+    finalestruturavetor[0].data.ano=2021;
+    finalestruturavetor[0].concelhos.numeroconcelhos = 1;
+    strcpy(finalestruturavetor[0].concelhos.concelho,"Santa Maria da Feira");
+    strcpy(finalestruturavetor[0].concelhos.local,"Ass. dad. feira");
+    strcpy(finalestruturavetor[0].concelhos.brigada,"Posto Av. Feira");
+    finalestruturavetor[0].concelhos.tempoabertura.hora=15;
+    finalestruturavetor[0].concelhos.tempoabertura.minuto=00;
+    finalestruturavetor[0].concelhos.tempofecho.hora=19;
+    finalestruturavetor[0].concelhos.tempofecho.minuto=00;
+
+    strcpy(finalestruturavetor[1].nomecidade,"Braga");
+    finalestruturavetor[1].data.dia=28;
+    finalestruturavetor[1].data.mes=04;
+    finalestruturavetor[1].data.ano=2021;
+    finalestruturavetor[1].concelhos.numeroconcelhos = 1;
+    strcpy(finalestruturavetor[1].concelhos.concelho,"Vizela");
+    strcpy(finalestruturavetor[1].concelhos.local,"bombeiros de vizela");
+    strcpy(finalestruturavetor[1].concelhos.brigada,"associacao dadores vizela");
+    finalestruturavetor[1].concelhos.tempoabertura.hora=15;
+    finalestruturavetor[1].concelhos.tempoabertura.minuto=00;
+    finalestruturavetor[1].concelhos.tempofecho.hora=19;
+    finalestruturavetor[1].concelhos.tempofecho.minuto=00;
+
+    strcpy(finalestruturavetor[2].nomecidade,"Aveiro");
+    finalestruturavetor[2].data.dia=16;
+    finalestruturavetor[2].data.mes=4;
+    finalestruturavetor[2].data.ano=2021;
+    finalestruturavetor[2].concelhos.numeroconcelhos = 1;
+    strcpy(finalestruturavetor[2].concelhos.concelho,"Aveiro");
+    strcpy(finalestruturavetor[2].concelhos.local," Merc Mun De Santiago-Sede Adasca");
+    strcpy(finalestruturavetor[2].concelhos.brigada,"post.av.aveiro");
+    finalestruturavetor[2].concelhos.tempoabertura.hora=15;
+    finalestruturavetor[2].concelhos.tempoabertura.minuto=00;
+    finalestruturavetor[2].concelhos.tempofecho.hora=19;
+    finalestruturavetor[2].concelhos.tempofecho.minuto=30;
+
+    strcpy(finalestruturavetor[3].nomecidade,"Coimbra");
+    finalestruturavetor[3].data.dia=8;
+    finalestruturavetor[3].data.mes=8;
+    finalestruturavetor[3].data.ano=2021;
+    finalestruturavetor[3].concelhos.numeroconcelhos = 1;
+    strcpy(finalestruturavetor[3].concelhos.concelho,"Coimbra");
+    strcpy(finalestruturavetor[3].concelhos.local,"Cstcoimbra-Junto Esc.ines Castro/hp.covoes");
+    strcpy(finalestruturavetor[3].concelhos.brigada,"POSTO FIXO DE COIMBRA");
+    finalestruturavetor[3].concelhos.tempoabertura.hora=8;
+    finalestruturavetor[3].concelhos.tempoabertura.minuto=00;
+    finalestruturavetor[3].concelhos.tempofecho.hora=19;
+    finalestruturavetor[3].concelhos.tempofecho.minuto=30;
+
+    strcpy(finalestruturavetor[4].nomecidade,"Porto");
+    finalestruturavetor[4].data.dia=01;
+    finalestruturavetor[4].data.mes=02;
+    finalestruturavetor[4].data.ano=2021;
+    finalestruturavetor[4].concelhos.numeroconcelhos = 1;
+    strcpy(finalestruturavetor[4].concelhos.concelho,"Porto");
+    strcpy(finalestruturavetor[4].concelhos.local,"Rua De Bolama, N.133 - Porto");
+    strcpy(finalestruturavetor[4].concelhos.brigada,"Posto fixo");
+    finalestruturavetor[4].concelhos.tempoabertura.hora=8;
+    finalestruturavetor[4].concelhos.tempoabertura.minuto=00;
+    finalestruturavetor[4].concelhos.tempofecho.hora=19;
+    finalestruturavetor[4].concelhos.tempofecho.minuto=30;
+
+    *qtd2 = 5;
+}
+
+/// Procedimento para introdução de dados para preencher as estruturas
+void registardados(finalestrutura_tipo finalestruturavetor[], int *qtd2){
+    int quant=0, correta, correta1, correta2;
+    printf("\nQuantidade:");
+    scanf("%d", &quant);// quantidade de cidades a inserir de uma só vez
+    for (int i = 0; i < quant; i++){
+            getchar();
+            printf("\nNome da cidade:");
+            fgets(finalestruturavetor[*qtd2].nomecidade,18,stdin);
+            do{
+            printf("\nDia de recolha:");
+            scanf("%d" , &finalestruturavetor[*qtd2].data.dia);
+            printf("\nMes de recolha:");
+            scanf("%d" , &finalestruturavetor[*qtd2].data.mes);
+            printf("\nAno de recolha:");
+            scanf("%d" , &finalestruturavetor[*qtd2].data.ano);
+            correta=datafinal(finalestruturavetor, qtd2);
+            }while(correta==0);// enquanto a data for invalida repetir a introdução de dados novos
+            do{
+            printf("\nQuantidade de concelhos:");
+            scanf("%d", &finalestruturavetor[*qtd2].concelhos.numeroconcelhos);
+            }while(finalestruturavetor[*qtd2].concelhos.numeroconcelhos>5);
+            for(int j = 0; j < finalestruturavetor[*qtd2].concelhos.numeroconcelhos && j<4; j++){// mais que um concelho pode ser inserido
+                getchar();
+                printf("\nConcelho:");
+                fgets(finalestruturavetor[*qtd2].concelhos.concelho,26,stdin);
+            getchar();
+            printf("Local:" );
+            fgets(finalestruturavetor[*qtd2].concelhos.local,51,stdin);
+            getchar();
+            printf("\nBrigada:");
+            fgets(finalestruturavetor[*qtd2].concelhos.brigada,51,stdin);
+            do{
+            printf("\nHora de abertura:");
+            scanf("%d" , &finalestruturavetor[*qtd2].concelhos.tempoabertura.hora);
+            printf("\nMinuto de abertura:");
+            scanf("%d" , &finalestruturavetor[*qtd2].concelhos.tempoabertura.minuto);
+            correta1=tempoaberturafinal(finalestruturavetor, qtd2);
+            }while(correta1==0);
+            do{
+            printf("\nHora de fecho: ");
+            scanf("%d" , &finalestruturavetor[*qtd2].concelhos.tempofecho.hora);
+            printf("\nMinuto de fecho: ");
+            scanf("%d" , &finalestruturavetor[*qtd2].concelhos.tempofecho.minuto);
+            correta2=tempofechofinal(finalestruturavetor, qtd2);
+            }while(correta2==0);
+            }
+            (*qtd2)++;// quantidade de posições já guardadas no total de todas as ações de registar
+    }
+    }
+
+
+/// Procedimento organizar por ordem alfabética do nome da cidade os dados das estruturas - Realizado através do pseudocódigo do powerpoint de vetores slides de ordenação e bubble sort
+void ordenaralfabeticamente(finalestrutura_tipo finalestruturavetor[], int qtd2){
+    finalestrutura_tipo temp;// variavel de troca
+    for (int i = 0; i < qtd2; i++){
+        for (int j = 0; j < qtd2 - i - 1; j++){
+            if(strcmp(finalestruturavetor[j].nomecidade, finalestruturavetor[j + 1].nomecidade) > 0){
+                temp = finalestruturavetor[j];
+                finalestruturavetor[j] = finalestruturavetor[j + 1];
+                finalestruturavetor[j + 1] = temp;
+                printf(finalestruturavetor[j].nomecidade);
+                printf("\n");
+            }
+        }
+    }
+}
+
+
+
+/// Procedimento para mostrar todos os dados inseridos nas estruturas
+void mostrardados(finalestrutura_tipo finalestruturavetor[], int qtd2){
+
+    printf("\n");
+
+    for (int i = 0; i < qtd2; i++){
+            printf("--------------------------------------------------Tabela principal------------------------------------------------------\n");
+        printf("\n");
+        printf("   \t\tCidade\t\t\t\t\t\t\t\t\Data de recolha  \n");
+        printf("   \t\t%s\t\t\t\t\t\t\t\t    %d-%d-%d\n", finalestruturavetor[i].nomecidade,finalestruturavetor[i].data.ano,finalestruturavetor[i].data.mes, finalestruturavetor[i].data.dia);
+        printf("\n");// introdução de linha vazia
+
+    printf("------------------------------------------------------Subtabela---------------------------------------------------------\n");
+    printf("\n");
+        printf("\n");
+        printf("\n");
+        printf("Concelho                Local                           Brigada           \t\t\t Abertura     Fecho\n");
+
+        for (int j = 0; j<finalestruturavetor[i].concelhos.numeroconcelhos; j++){
+            printf("%s  %30s%30s\t%16d:%02d%4d:%02d", finalestruturavetor[i].concelhos.concelho, finalestruturavetor[i].concelhos.local,finalestruturavetor[i].concelhos.brigada,finalestruturavetor[i].concelhos.tempoabertura.hora, finalestruturavetor[i].concelhos.tempoabertura.minuto,finalestruturavetor[i].concelhos.tempofecho.hora, finalestruturavetor[i].concelhos.tempofecho.minuto);
+            printf("\n");
+        }
+        printf("\n");
+        printf("\n");
+        printf("\n");
+    }
+}
+
+
+
+/// Procedimento para pesquisar a posicao onde se localiza o local inserido e eliminar todos os dados referentes a essa posição - Realizado com base no pseudocódigo do powerpoint de vetores slides de pesquisa sequencial e eliminação
+void eliminarlocal(finalestrutura_tipo finalestruturavetor[], int *qtd2){
+
+    int pos, i, j;
+    char localeliminar[51];
+    getchar();
+    printf("Local a eliminar: ");
+    gets(localeliminar);
+    pos=-1;// variavel necessária para determinar onde se localiza no vetor o local introduzido para ser possivel a sua eliminação
+    for (i=0;i<*qtd2; i++){
+        if(strcmp(finalestruturavetor[i].concelhos.local,localeliminar)==0){// comparação de todos os carateres das duas strings
+
+            pos=i;
+            for(j=pos; j<*qtd2-1; j++){
+            finalestruturavetor[j]=finalestruturavetor[j+1];
+            }
+            pos=-1;// após a eliminação de dados introduzidos no vetor da estrutura os que sucediam a esta estão em posições diferentes
+            break;
+        }
+    }
+    *qtd2=*qtd2-1;// quantidade de cidades introduzidas no vetor estrutura após a eliminação de algum local diminui
+
+ }
+
+
+/// Procedimento para mostrar todos os locais abertos na data e hora inseridas pelo utilizador
+void mostrarlocais(finalestrutura_tipo finalestruturavetor[], int qtd2){
+    int i, minutos, hora, dia, ano, mes;
+    printf("Dia:");
+    scanf("%d" , &dia);
+    printf("Mes:");
+    scanf("%d" , &mes);
+    printf("Ano:");
+    scanf("%d" , &ano);
+    printf("Digite a hora:");
+    scanf("%d", &hora);
+    printf("Digite os minutos:");
+    scanf("%d", &minutos);
+    for(i=0;i<qtd2;i++){
+    if(dia==finalestruturavetor[i].data.dia && mes==finalestruturavetor[i].data.mes && ano==finalestruturavetor[i].data.ano){// comparação com as datas introduzidas na estrutura
+        if(hora>finalestruturavetor[i].concelhos.tempoabertura.hora && hora<finalestruturavetor[i].concelhos.tempofecho.hora)// comparação se o tempo introduzido está no intervalo de algum tempo guardado no vetor da estrutura
+        printf("Local aberto: %s", finalestruturavetor[i].concelhos.local);
+        if(hora==finalestruturavetor[i].concelhos.tempoabertura.hora  && minutos>finalestruturavetor[i].concelhos.tempoabertura.minuto)
+        printf("Local aberto: %s", finalestruturavetor[i].concelhos.local);
+        if(hora==finalestruturavetor[i].concelhos.tempofecho.hora && minutos<finalestruturavetor[i].concelhos.tempofecho.minuto)
+        printf("Local aberto: %s", finalestruturavetor[i].concelhos.local);
+     }
+     }
+    }
+
+    //https://stackoverflow.com/questions/12539827/warning-passing-argument-1-of-gets-makes-pointer-from-integer-without-a-cast
+
+ //Estrutura para os sinais vitais
+typedef struct
+{
+    float temperatura, t_sistolica, t_dialostica;
+} sinais_tipo;
+//Estrutura para a nova recolha de sangue
+typedef struct rastreio
+{
+    data_tipo data;
+    long num_dador; //numero do dador
+    char concelho[60];
+    int horarec;
+    sinais_tipo sinais;
+    float qtd_sangue;
+    char estado_dador;
+    tempoabertura_tipo tempoabertura;
+}rastreio_tipo;
+//Alguns rastreios como exemplo, parâmetros de entrada: vetor rastreio [] e parâmetro de sáida num (quantidade de rastreios de exemplo)
+void inicializar_recolha(rastreio_tipo rastreio[], int *num)
+{
+    rastreio[0].data.dia=10;
+    rastreio[0].data.mes=12;
+    rastreio[0].data.ano=2018;
+    rastreio[0].num_dador = 111111;
+    strcpy(rastreio[0].concelho, "Aveiro");
+    rastreio[0].horarec = 11;
+    rastreio[0].sinais.temperatura=36;
+    rastreio[0].sinais.t_sistolica=120;
+    rastreio[0].sinais.t_dialostica=95;
+    rastreio[0].estado_dador = 'S';
+    rastreio[0].qtd_sangue=320;
+
+     rastreio[1].data.dia=1;
+    rastreio[1].data.mes=4;
+    rastreio[1].data.ano=2016;
+    rastreio[1].num_dador = 111111;
+    strcpy(rastreio[1].concelho, "Braga");
+    rastreio[1].horarec = 17;
+    rastreio[1].sinais.temperatura=37;
+    rastreio[1].sinais.t_sistolica=140;
+    rastreio[1].sinais.t_dialostica=80;
+    rastreio[1].estado_dador = 'S';
+    rastreio[1].qtd_sangue=120;
+
+     rastreio[2].data.dia=8;
+    rastreio[2].data.mes=9;
+    rastreio[2].data.ano=2015;
+    rastreio[2].num_dador = 111111;
+    strcpy(rastreio[2].concelho, "Porto");
+    rastreio[2].horarec = 11;
+    rastreio[2].sinais.temperatura=35.3;
+    rastreio[2].sinais.t_sistolica=132;
+    rastreio[2].sinais.t_dialostica=98;
+    rastreio[2].estado_dador = 'S';
+    rastreio[2].qtd_sangue=220;
+
+     rastreio[3].data.dia=20;
+    rastreio[3].data.mes=6;
+    rastreio[3].data.ano=2021;
+    rastreio[3].num_dador = 111112;
+    strcpy(rastreio[3].concelho, "Coimbra");
+    rastreio[3].horarec = 8;
+    rastreio[3].sinais.temperatura=36;
+    rastreio[3].sinais.t_sistolica=110;
+    rastreio[3].sinais.t_dialostica=70;
+    rastreio[3].estado_dador = 'S';
+    rastreio[3].qtd_sangue=100;
+
+     rastreio[4].data.dia=10;
+    rastreio[4].data.mes=12;
+    rastreio[4].data.ano=2019;
+    rastreio[4].num_dador = 111112;
+    strcpy(rastreio[4].concelho, "Porto");
+    rastreio[4].horarec = 8;
+    rastreio[4].sinais.temperatura=36;
+    rastreio[4].sinais.t_sistolica=124;
+    rastreio[4].sinais.t_dialostica=95;
+    rastreio[4].estado_dador = 'S';
+    rastreio[4].qtd_sangue=300;
+
+    *num=5;
+}
+//Calcula a idade do dador, de forma a averiguar se este tem idade suficiente para doar sangue
+int idade_dador(dador_tipo dador[], int n)
+{
+    int idade;
+    time_t mytime;//Vai buscar a data atual
+    mytime = time(NULL);
+    struct tm t = *localtime(&mytime);
+
+    idade = t.tm_year+1900 - dador[n].dt.ano;//Calcula a idade apenas se baseando na diferença de anos entre o ano atual e o ano da data de nascimento
+
+    if (t.tm_mon+1 < dador[n].dt.mes)//Caso o mês atual seja menor que o mês da data de nascimento significa que a pessoa ainda não fez anos nesse ano, por isso tiramos uma unidade à idade
+    {
+        idade -= 1;
+    }
+    else
+    {
+        if (t.tm_mon+1 == dador[n].dt.mes)
+        {
+            if (t.tm_mday < dador[n].dt.dia)//Caso o dia atual seja menor que o dia da data de nascimento e o mês atual seja igual ao mês da data de nascimento significa que a pessoa ainda não fez anos nesse ano, por isso tiramos uma unidade à idade
+            {
+                idade -= 1;
+            }
+        }
+    }
+
+    return idade;
+}
+
+//validar se o ano em que o dador deseja realizar o rastreio, ja tem o numero de rastreios maximo por genero do dador
+int validar_numero_ano(rastreio_tipo rastreio[], int *num)
+{
+    int i, m=0;
+    time_t mytime;//Vai buscar a data atual
+    mytime = time(NULL);
+    struct tm t = *localtime(&mytime);
+    while(rastreio[*num].data.ano<t.tm_year+1900)
+    {
+        printf("Impossivel, realizar uma recolha de sangue num ano anterior ao ano atual\n");
+        printf("Digite novamente um ano correto:\n");
+        scanf("%d", &rastreio[*num].data.ano);
+        return 0;
+    }
+    for(i=0;i<*num; i++)
+    {
+        if(rastreio[i].data.ano==t.tm_year+1900)
+        {
+        m+=1;
+        }
+    }
+    return m;
+}
+
+//Inserir os dados vitais
+void medir_sinais_vitais(rastreio_tipo rastreio[], dador_tipo dador[], int qtd, int *num)
+{
+    int k, m, idade,i, dia, mes, ano, y, p;
+    char G;
+    long numero;
+    printf ("\n Introduza o numero do dador, que pretende medir os sinais vitais:\n");
+    scanf("%ld", &numero);
+    m = 0;
+    for (k = 0; k <qtd; k++)
+    {
+        if (numero == dador[k].num)// Verifica se o dador que foi introduzido existe no registo dos dadores, com o objetivo de ser possível inserir os dados desse dador
+        {
+            printf("Dador inserido encontra-se no registo!\n");
+            m=1;
+            idade=idade_dador(dador, k);
+            rastreio[k].num_dador=dador[k].num;
+            if(idade>=18 && idade<=64)
+        {
+             printf("Insira a data de recolha de sangue(dia-mes-ano):\n");
+            scanf("%d%d%d", &rastreio[*num].data.dia, &rastreio[*num].data.mes, &rastreio[*num].data.ano);
+            dia=rastreio[*num].data.dia;
+            mes=rastreio[*num].data.mes;
+            ano=rastreio[*num].data.ano;
+            p=validar_ano(ano,4);
+            while (p==0)
+            {
+            printf("\n O ano inserida esta incorreto, insira novamente com os 4 digitos:\n");
+            scanf("%d",&rastreio[*num].data.ano);
+            ano=rastreio[*num].data.ano;
+            p=validar_ano(ano,4);
+            }
+            y=validar_data(dia,mes,ano);
+            while (y==0)
+            {
+            printf("\n O dia ou o mes inserido esta incorreto, insira novamente, (dia-mes):\n");
+            scanf("%d%d",&rastreio[*num].data.dia, &rastreio[*num].data.mes);
+            dia=rastreio[*num].data.dia;
+            mes=rastreio[*num].data.mes;
+            y=validar_data(dia,mes,ano);
+            }
+            i=validar_numero_ano(rastreio,num);
+            fflush(stdin);
+            printf("Digite o seu genero:\n");
+            scanf("%c",&G);
+            if(G=='F' && i>=3)
+                {
+                    printf("O dador inserido tem o numero maximo de rastreios por ano");
+                    rastreio[*num].estado_dador='N';
+                }
+            if(G=='M' && i>=4)
+            {
+                    printf("O dador inserido tem o numero maximo de rastreios por ano");
+                    rastreio[*num].estado_dador='N';
+            }
+            if(rastreio[*num].estado_dador!='N')
+            {
+            printf("\n*********Sinais Vitais*********** \n");
+            printf("Introduza a temperatura:\n");
+            scanf("%f", &rastreio[*num].sinais.temperatura);
+            printf("Introduza a tensao sistolica:\n");
+            scanf("%f", &rastreio[*num].sinais.t_sistolica);
+            printf("Introduza a tensao diastolica:\n");
+            scanf("%f", &rastreio[*num].sinais.t_dialostica);
+            if(rastreio[*num].sinais.temperatura>=37.5 || rastreio[*num].sinais.t_sistolica<100 || rastreio[*num].sinais.t_sistolica>180 ||rastreio[*num].sinais.t_dialostica<60 || rastreio[*num].sinais.t_dialostica>100)
+               {
+                   printf("Inapto para doar sangue!\n");
+                   rastreio[*num].estado_dador='N';
+               }
+
+            else
+            {
+                    printf("Apto para doar sangue!\n");
+                    rastreio[*num].estado_dador='S';
+            }
+            }
+        }
+    else
+    {
+        if(idade>=65)
+        {
+            printf("O dador registado so pode dar sangue com autorizacao do medico de servico de saude!\n");
+        }
+        else
+           {
+            printf("Inapto para doar sangue, idade insuficiente!");
+            rastreio[*num].estado_dador='N';
+           }
+
+            break;
+        }
+
+    }
+    }
+    if(m != 1)
+    {
+        printf("Dador inserido nao se encontra no registo!\n");
+    }
+}
+
+//Validacao do periodo de tempo do ultimo rastreio, se tem um periodo de dois meses em relacao ao ultimo rastreio
+int periodo_de_tempo(rastreio_tipo rastreio[], int *num, int numdadorleitura)
+{
+    int periodo, k;
+    for(k=0;k<*num;k++)
+    {
+        if (rastreio[*num].data.ano==rastreio[k].data.ano)
+        {
+        periodo=rastreio[*num].data.mes-2;
+        if(rastreio[k].data.mes>=periodo)
+            {
+            return 0;
+            }
+        }
+    }
+   return -1;
+}
+
+// Inserir uma nova recolha de sangue
+int inserir_recolha(rastreio_tipo rastreio[], dador_tipo dador[], finalestrutura_tipo finalestrutura[], int*num, int qtd)
+{
+    int numdadorleitura, y, correta1;
+    char n[7];
+     printf("Introduza o numero do dador, que deseja registar um rastreio:\n");
+     scanf("%s", n);
+      numdadorleitura = atoi(n);
+      rastreio[*num].num_dador=numdadorleitura;
+      if(rastreio[*num].estado_dador!='S')
+      {
+          if(rastreio[*num].estado_dador!='N')
+          {
+              return 1;
+          }
+          else
+          {
+            printf("O dador esta inapto para doar sangue!\n");
+          return 0;
+          }
+
+      }
+       else
+       {
+
+    y=periodo_de_tempo(rastreio,num, numdadorleitura);
+   if (y!=0)
+    {
+    fflush(stdin);
+    printf("Insira o concelho de recolha de sangue:\n");
+    gets(rastreio[*num].concelho);
+
+    do{
+    printf("Insira a hora e os minutos da recolha de sangue:\n");
+    scanf("%d%d", &rastreio[*num].tempoabertura.hora, &rastreio[*num].tempoabertura.minuto);
+    correta1=tempoaberturafinal(rastreio,num);
+    if(correta1==0)
+    {
+        printf("No tempo inserido, o local de recolha de sangue nao esta aberto!\n");
+    }
+    }while(correta1==0);
+    printf("Introduza a quantidade de sangue a doar:\n");
+    scanf("%f", &rastreio[*num].qtd_sangue);
+    while(rastreio[*num].qtd_sangue>450)
+    {
+        printf("A quantidade de sangue inserida, e superior ao valor maximo, insira novamente:\n");
+        scanf("%f", &rastreio[*num].qtd_sangue);
+    }
+    dador[qtd].nd+=1;
+    *num+=1;
+    }
+   else
+    {
+    printf("Nao tem tempo suficiente para uma outra doacao de sangue!\n");
+    }
+
+       return 2;
+}
+}
+//Histórico de todas as dádivas de um dador
+void historico_rastreios(rastreio_tipo rastreio[], int num, int qtd, dador_tipo dador[])
+{
+
+    long numdador;
+    int x,m=0;
+    printf("Introduza o numero do dador para o qual pretende vizualizar as suas dadivas:\n");
+    scanf("%ld", &numdador);
+    for(x = 0; x < num; x++)
+    {
+        if (rastreio[x].num_dador == numdador)//Compara os números de utente dos diferentes rastreios para com o numero do dador inserido pelo utilizador
+        {
+            printf("\n\nNumero|  Concelho|Data de Recolha|_________________Sinais Vitais____________________|Quantidade de Sangue|Estado\n");
+            printf("                                 |Temperatura | Tensao Sistolica | Tensao Diastolica|\n");
+        printf("%6ld|%10s|     %2d-%2d-%4d|          %.0f|               %.0f|                %.0f|                 %.0f| %c\n\n", rastreio[x].num_dador, rastreio[x].concelho, rastreio[x].data.dia,rastreio[x].data.mes, rastreio[x].data.ano, rastreio[x].sinais.temperatura,rastreio[x].sinais.t_sistolica,rastreio[x].sinais.t_dialostica, rastreio[x].qtd_sangue, rastreio[x].estado_dador);
+       m=1;
+        }
+
+    }
+    if(m!=1)
+        printf("O numero introduzido, nao possui historico de doacoes!\n");
+}
+
+//Menu utilizado para que o utilzador digite a componente/componentes que deseja alterar
+char menu_alterar_rastreio()
+{
+    char op;
+    printf("***********Edicao de Dados*************\n");
+    printf("1-Numero do dador\n");
+    printf("2-Data da recolha de sangue\n");
+    printf("3-Concelho da recolha de sangue\n");
+    printf("4-Temperatura do Dador\n");
+    printf("5-Tensao sistolica\n");
+    printf("6-Tensao diastolica\n");
+    printf("7-Quantidade de sangue a doar\n");
+    printf("0-Voltar ao menu anterior\n");
+    printf("**************************************\n");
+    fflush(stdin);
+    printf("\nDigite o numero da componente do rastreio, que deseja alterar:\n");
+    scanf("%c", &op);
+    return op;
+}
+//validar numero com seis digitos
+int seis_digitos(int numero)
+{
+    int n=0;
+    do
+    {
+        numero=numero/10;
+        n++;
+        if(numero==0 && n!=6)
+        {
+            return 0;
+        }
+
+    }while(numero==0);
+    return n;
+}
+//Permite ao utilizador alterar os dados de um rastreio previamente efetuado
+int editar_recolha(rastreio_tipo rastreio[], int num, dador_tipo dador[], int qtd, int qtd2, finalestrutura_tipo finalestrutura[])
+{
+    int k, y, n, d, m, a, p, numeronovo, dador2=0;
+    char numero[7], x;
+    printf("Qual o numero do dador a que quer aceder aos dados?\n");
+    scanf("%s", numero);
+    n = atoi(numero);  //atoi transforma a string numero em um numero inteiro
+   for(k=0;k<num;k++)
+   {
+   if(rastreio[k].num_dador==n)
+   {
+       dador2=1;
+   }
+   }
+   if(dador2==0)
+   {
+       printf("O dador inserido nao tem nenhum rastreio registado!\n");
+       return 0;
+   }
+      for (k = 0; k < num; k++)
+    {
+        if(rastreio[k].num_dador == n)//Lista todos os rastreios registados cujo número do dador é igual àquele introduzido pelo utilizador
+        {
+       printf("\n\nNumero|  Concelho|Data de Recolha|_________________Sinais Vitais____________________|Quantidade de Sangue|Estado\n");
+           printf("                                 |Temperatura | Tensao Sistolica | Tensao Diastolica|\n");
+        printf("%6ld|%10s|     %2d-%2d-%4d|          %.0f|               %.0f|                %.0f|                 %.0f| %c\n\n", rastreio[k].num_dador, rastreio[k].concelho, rastreio[k].data.dia,rastreio[k].data.mes, rastreio[k].data.ano, rastreio[k].sinais.temperatura,rastreio[k].sinais.t_sistolica,rastreio[k].sinais.t_dialostica, rastreio[k].qtd_sangue, rastreio[k].estado_dador);
+
+        }
+    }
+    printf("\nQual a data do rastreio que deseja alterar:\n");
+    scanf("%d%d%d", &rastreio[k].data.dia, &rastreio[k].data.mes, &rastreio[k].data.ano);
+    for (k = 0; k < num; k++)
+    {
+        do
+        {
+            x = menu_alterar_rastreio();
+            switch(x)
+            {
+
+            case '1':
+                printf("Qual o novo numero do dador?\n");
+                scanf("%ld", &rastreio[k].num_dador);
+                numeronovo=rastreio[k].num_dador;
+                while(seis_digitos(numeronovo) == 0)
+                {
+                    printf("Tenha em conta que o numero do dador tem de ter seis digitos!!Insira novamente:\n");
+                    scanf("%ld", & rastreio[k].num_dador);
+                    numeronovo=rastreio[k].num_dador;
+
+                }
+                while(validar_numero(dador, qtd)==0)
+                {
+                    printf("O numero inserido corresponde a um outro dador, insira um novo numero:");
+                    scanf("%ld", &rastreio[k].num_dador);
+                }
+
+                break;
+            case '2':
+                printf("Qual a nova data do rastreio(dia-mes-ano):\n");
+                scanf("%d%d%d", &rastreio[k].data.dia, &rastreio[k].data.mes, &rastreio[k].data.ano);
+                d=rastreio[k].data.dia;
+                m=rastreio[k].data.mes;
+                a=rastreio[k].data.ano;
+                p=validar_ano(a,4);
+                while (p==0)
+                {
+                printf("\n O ano inserida esta incorreto, insira novamente com os 4 digitos:\n");
+                scanf("%d",&rastreio[k].data.ano);
+                a=rastreio[k].data.ano;
+                p=validar_ano(a,4);
+                }
+                y=validar_data(d,m,a);
+                while (y==0)
+                {
+                printf("\n O dia ou o mes inserido esta incorreto, insira novamente, (dia-mes):\n");
+                scanf("%d%d",&rastreio[k].data.dia, &rastreio[k].data.mes);
+                d=rastreio[k].data.dia;
+                m=rastreio[k].data.mes;
+                y=validar_data(d,m,a);
+                }
+                break;
+            case '3':
+                fflush(stdin);
+                printf("Qual e o novo concelho:\n");
+                gets(rastreio[k].concelho);
+                break;
+            case '4':
+                printf("Qual e a temperatura:\n");
+                scanf("%f", &rastreio[k].sinais.temperatura);
+                if(rastreio[k].sinais.temperatura>38)
+                {
+                rastreio[k].estado_dador='N';
+                }
+                break;
+            case '5':
+                printf("Qual e a tensao sistolica:\n");
+                scanf("%f", &rastreio[k].sinais.t_sistolica);
+                if(rastreio[k].sinais.t_sistolica<100 ||rastreio[k].sinais.t_sistolica>180)
+                {
+                    rastreio[k].estado_dador='N';
+                }
+                break;
+            case '6':
+                printf("Qual e atensao diastolica:\n");
+                scanf("%f", &rastreio[k].sinais.t_dialostica);
+                if(rastreio[k].sinais.t_sistolica<60 ||rastreio[k].sinais.t_sistolica>100)
+                {
+                    rastreio[k].estado_dador='N';
+                }
+            break;
+            case '7':
+                printf("Digite a quantidade de sangue:");
+                scanf("%f", &rastreio[k].qtd_sangue);
+                if(rastreio[k].qtd_sangue>450)
+                {
+                    rastreio[k].estado_dador='N';
+                }
+                break;
+            }
+        }while(x!='0');  //AQUI EU COLOCO A OPÇÃO ZERO E ELE NAO DA LOGO NAO PERCEBO
+    }
+    return -1;
+}
+
+    /// Procedimento para indicar a percentagem de um determinado tipo sanguineo inserido pelo utilizador em relação ao tipos sanguineos inseridos na base de dados
+void percentagemsangue(dador_tipo dador[], int qtd){
+    int i, quantsang=0;
+    float percentagem=0;
+    char compararsang[3], compararrh;
+    printf("Tipo sanguineo (com letra maiscula):");
+    gets(compararsang);
+    printf("Fator RH:");
+    compararrh=getchar();
+    for(i=0;i<qtd;i++)
+    {
+
+// comparar se o tipo sanguineo inserido é igual a algum aramazenado na estrutura de dados, caso o seja é contado
+        if(strcmp(compararsang,dador[i].s)==0)
+    {
+            if(compararrh==dador[i].rh)
+            {
+                quantsang++;
+
+            }
+        }
+    }
+// calcular a percentagem com a quantidade de tipo de sangue sobre a quantidade de dadores inseridos na estrutura
+    percentagem=(quantsang*100)/qtd;
+    printf("\nA percentagem de dadores com este perfil e %f", percentagem);
+}
+
+///Procedimento para a realizacao do grafico que apresenta a quantidade de doacoes feitas em cada mes ao longo de um ano pretendido pelo utilizador
+void grafico(finalestrutura_tipo finalestruturavetor[], int qtd2){
+
+int j,i, ano,contadorjan=0, contadorfev=0,  contadormar=0,  contadorab=0,  contadormai=0,  contadorjunh=0,  contadorjulh=0,  contadorago=0,  contadorset=0,  contadorout=0,  contadornov=0,  contadordez=0;
+
+printf("Ano:");
+scanf("%d", &ano);
+for(i=0;i<qtd2;i++) // contagem do numero de recolhas inseridas em cada mes no ano inserido
+{
+    if(finalestruturavetor[i].data.ano==ano){
+    if(finalestruturavetor[i].data.mes==1){
+        contadorjan++;
+
+    }
+     if(finalestruturavetor[i].data.mes==2){
+        contadorfev++;
+
+    }
+     if(finalestruturavetor[i].data.mes==3){
+        contadormar++;
+
+    }
+     if(finalestruturavetor[i].data.mes==4){
+        contadorab++;
+
+    }
+     if(finalestruturavetor[i].data.mes==5){
+        contadormai++;
+
+    }
+     if(finalestruturavetor[i].data.mes==6){
+        contadorjunh++;
+
+    }
+     if(finalestruturavetor[i].data.mes==7){
+        contadorjulh++;
+
+    }
+     if(finalestruturavetor[i].data.mes==8){
+        contadorago++;
+
+    }
+     if(finalestruturavetor[i].data.mes==9){
+        contadorset++;
+
+    }
+     if(finalestruturavetor[i].data.mes==10){
+        contadorout++;
+
+    }
+     if(finalestruturavetor[i].data.mes==11){
+        contadornov++;
+
+    }
+     if(finalestruturavetor[i].data.mes==12){
+        contadordez++;
+
+    }
+    }
+}
+//caso o contador seja impar, retirar um algarismo para que se torne par uma vez que a contagem é de dois em dois e uma contagem com 2 ou 3 apresenta o mesmo output
+if(contadorjan%2!=0)
+    contadorjan=contadorjan-1;
+if(contadorfev%2!=0)
+    contadorfev=contadorfev-1;
+if(contadormar%2!=0)
+    contadormar=contadormar-1;
+if(contadorab%2!=0)
+    contadorab=contadorab-1;
+if(contadormai%2!=0)
+    contadormai=contadormai-1;
+if(contadorjunh%2!=0)
+    contadorjunh=contadorjunh-1;
+if(contadorjulh%2!=0)
+    contadorjulh=contadorjulh-1;
+if(contadorago%2!=0)
+    contadorago=contadorago-1;
+if(contadorset%2!=0)
+    contadorset=contadorset-1;
+if(contadorout%2!=0)
+    contadorout=contadorout-1;
+if(contadornov%2!=0)
+    contadornov=contadornov-1;
+if(contadordez%2!=0)
+    contadordez=contadordez-1;
+
+
+// construcao do grafico
+printf("janeiro:");
+for(j=0;j<contadorjan;j=j+2)
+    printf("*");
+    printf("\n");
+printf("fevereiro:");
+for(j=0;j<contadorfev;j=j+2)
+    printf("*");
+    printf("\n");
+printf("marco:");
+for(j=0;j<contadormar;j=j+2)
+    printf("*");
+        printf("\n");
+    printf("abril:");
+for(j=0;j<contadorab;j=j+2)
+    printf("*");
+        printf("\n");
+    printf("maio:");
+for(j=0;j<contadormai;j=j+2)
+    printf("*");
+        printf("\n");
+    printf("junho:");
+for(j=0;j<contadorjunh;j=j+2)
+    printf("*");
+        printf("\n");
+    printf("julho:");
+for(j=0;j<contadorjulh;j=j+2)
+    printf("*");
+        printf("\n");
+    printf("agosto:");
+for(j=0;j<contadorago;j=j+2)
+    printf("*");
+        printf("\n");
+    printf("setembro:");
+for(j=0;j<contadorset;j=j+2)
+    printf("*");
+        printf("\n");
+    printf("outubro:");
+for(j=0;j<contadorout;j=j+2)
+    printf("*");
+        printf("\n");
+    printf("novembro:");
+for(j=0;j<contadornov;j=j+2)
+    printf("*");
+        printf("\n");
+    printf("dezembro:");
+for(j=0;j<contadordez;j=j+2)
+    printf("*");
+
+   printf("\n");
+printf("\nLegenda: Cada * corresponde a duas doacoes feitas.");
+
+}
+
+
+
+/// Procedimento para calcular quais os horarios de recolha mais registados
+void frequencia(rastreio_tipo rastreio[], int num){
+
+int i, j, k, l, a, b, c, d, e,f, g, h, contfreq=0, freq[num], indice=-1, qtdvetor, max=-1,  vetorhora[num], indice2, indice3;
+
+// copia dos horarios de recolha registados na estrutura dador para o vetor vetorhora
+for(l=0;l<num;l++){
+
+  vetorhora[l]= rastreio[l].horarec;
+}
+
+  qtdvetor=num;
+
+
+  // eliminaçao do horarios repetidos do vetor vetorhora
+
+     for ( i = 0; i < qtdvetor; i ++)
+        {
+            for ( j = i + 1; j < qtdvetor; j++)
+            {
+
+                if ( vetorhora[i] == vetorhora[j])
+                {
+
+                    for ( k = j; k < qtdvetor - 1; k++)
+                    {
+                        vetorhora[k] = vetorhora [k + 1];
+                    }
+
+                    qtdvetor=qtdvetor-1;
+
+                    j--;
+                }
+            }
+        }
+
+// calculo da frequencia dos horarios na estrutura quando comparando com o vetor sem qualquer repeticao
+for(a=0;a<qtdvetor;a++){
+    for(b=0;b<num;b++){
+        if(vetorhora[a]==rastreio[b].horarec)
+        {
+           contfreq++;
+           freq[a]=contfreq;
+    }
+    }
+    contfreq=0;
+}
+
+
+// descobrir qual o horario com maior frequencia armazenada no vetor freq
+for(c=0;c<qtdvetor;c++){
+    if(freq[c]>max){
+    max=freq[c];
+    indice=c;
+    }
+}
+
+
+printf("O horario com maior numero de recolhas e %d\n", vetorhora[indice]);
+
+//encontrar na estrutura qual o concelho a que corresponde o horario mais frequentado
+for(f=0;f<num;f++){
+    if(vetorhora[indice]==rastreio[f].horarec){
+        printf("Este horario foi registado no concelho %s\n", rastreio[f].concelho);
+    }
+}
+printf("\n");
+
+//voltar a por o max para um valor pequeno para a voltar a encontrar o novo maximo, agora que a frequencia do horario mais frequentado foi atribuido 0 para deixar de ser o horario mais frequentado
+freq[indice]=0;
+max=-1;
+
+for(d=0;d<qtdvetor;d++){
+    if(freq[d]>max){
+    max=freq[d];
+    indice2=d;
+    }
+}
+printf("O horario com o segundo maior numero de recolhas e %d\n", vetorhora[indice2]);
+
+for(g=0;g<num;g++){
+    if(vetorhora[indice2]==rastreio[g].horarec){
+        printf("Este horario foi registado no concelho %s\n", rastreio[g].concelho);
+    }
+}
+printf("\n");
+
+freq[indice2]=0;
+max=-1;
+
+
+for(e=0;e<qtdvetor;e++){
+    if(freq[e]>max){
+    max=freq[e];
+    indice3=e;
+    }
+}
+
+
+ printf("O horario com o terceiro maior numero de recolhas e %d\n", vetorhora[indice3]);
+
+ for(h=0;h<num;h++){
+    if(vetorhora[indice3]==rastreio[h].horarec){
+        printf("Este horario foi registado no concelho %s\n", rastreio[h].concelho);
+    }
+}
+}
+
+/// Função com o algoritmo do menu 1.4 - codigo fornecido
+int menuestatistica(dador_tipo dador[], int *qtd,finalestrutura_tipo finalestruturavetor[], int *qtd2, rastreio_tipo rastreio[], int *num )
+{
+    char op5;
+    do
+    {
+        do
+        {
+            fflush(stdin);
+            printf("\n           MENU ESTATISTICAS \n");
+            printf("-----------------------------------------------\n");
+            printf("  1 - Mostrar a percentagem de pessoas de determinado grupo sanguineo\n");
+            printf("  2 - Listar 3 horarios com maior numero de recolhas de sangue \n");
+            printf("  3 - Mostrar grafico com evolucao de doacoes em determinado ano  \n");
+            printf("  0 - Voltar ao menu principal\n");
+            printf("-----------------------------------------------\n\n");
+            scanf("%c", &op5);
+            fflush(stdin);
+
+        }while(op5!='0' && op5!='1' && op5!='2' && op5!='3' && op5!='4');
+
+        switch (op5)
+        {
+            case '1':
+                    {
+
+                        percentagemsangue(dador, *qtd);
+                        break;
+                    }
+            case '2':
+                    {
+                        frequencia(rastreio, *num);
+                        break;
+                    }
+            case '3':
+                    {
+                        grafico(finalestruturavetor, *qtd2); break;
+                    }
+
+        }
+    }while(op5 != '0');
+
+    system("PAUSE");
+    return 0;
+}
+
+int menulocais(finalestrutura_tipo finalestruturavetor[], int *qtd2 )
+{
+    char op3;
+    do
+    {
+        do
+        {
+            fflush(stdin);
+            printf("\n           MENU GESTAO DE LOCAIS DE RECOLHA DE SANGUE \n");
+            printf("-----------------------------------------------\n");
+            printf("  1 - Registar dados de um Local de Recolha\n");
+            printf("  2 - Eliminar um Local de Recolha\n");
+            printf("  3 - Mostrar Locais de Recolha abertos em determinado periodo \n");
+            printf("  4 - Listar Locais de Recolha\n");
+            printf("  0 - Voltar ao menu principal\n");
+            printf("-----------------------------------------------\n\n");
+            scanf("%c", &op3);
+            fflush(stdin);
+
+        }while(op3!='0' && op3!='1' && op3!='2' && op3!='3' && op3!='4');
+
+        switch (op3)
+        {
+            case '1':
+                    {
+
+                        registardados(finalestruturavetor, qtd2);
+                        break;
+                    }
+            case '2':
+                    {
+
+                        eliminarlocal(finalestruturavetor, qtd2);break;
+                    }
+            case '3':
+                    {
+                        mostrarlocais(finalestruturavetor, &qtd2);break;
+                    }
+            case '4':
+                    {
+
+                        ordenaralfabeticamente(finalestruturavetor, *qtd2);
+                        mostrardados(finalestruturavetor, *qtd2);
+                        break;
+                    }
+        }
+    }while(op3 != '0');
+
+    system("PAUSE");
+    return 0;
+}
+
+int main()
+{
+    dador_tipo dador[MAX_DADORES];
+    finalestrutura_tipo finalestruturavetor[MAX];
+    rastreio_tipo rastreio[MAX_RASTREIOS];
+    int qtd=0, qtd2=0, x, num=0;
+    char op1, op2,  op4;
+    inicializar_dadores(dador, &qtd);
+    inicializarfinal(finalestruturavetor, &qtd2);
+    inicializar_recolha(rastreio, &num);
+    do
+    {
+        op1=menu_geral();
+        switch(op1)
+        {
+        case '1':
+
+            do
+            {
+                op2=menu_gd();
+                switch(op2)
+                {
+                case '1':
+                    inserir_dadores(dador, &qtd);
+                    break;
+                case '2':
+                    eliminar_dadores(dador, &qtd);
+                    break;
+                case '3':
+                    consultar_galardoados(dador, qtd);
+                    break;
+                case '4':
+                    mostrar_dadores(dador, qtd);
+                    break;
+                }
+            }
+            while (op2 != '0');
+            break;
+         case '2':   menulocais(finalestruturavetor, &qtd2);   break;
+
+         case '3':
+            do{
+                op4=menu_gs();
+                switch(op4)
+                {
+                case '1':
+                        x=inserir_recolha(rastreio, dador, finalestruturavetor, &num, qtd);
+                        if(x==1)
+                        {
+                            printf("Selecione primeiramente a opcao 3!");
+                        }
+                        break;
+               case '2':
+                    editar_recolha(rastreio, num, dador, qtd, qtd2, finalestruturavetor);
+                break;
+                case '3':
+                    medir_sinais_vitais(rastreio, dador, qtd, &num);
+                    break;
+                case '4':
+                    historico_rastreios(rastreio, num, qtd, dador);
+                    break;
+                }
+
+                }while(op4!='0');
+
+             case '4':   menuestatistica(dador, &qtd, finalestruturavetor, &qtd2, rastreio, &num ); break;
+            }
+    }
+    while(op1!='0');
+
+
+
+    return 0;
+
+}
